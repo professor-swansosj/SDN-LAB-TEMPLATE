@@ -1,0 +1,22 @@
+name: Smoke Test PAT
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        description: "One repo you plan to sync (e.g., yourorg/SDN-Lab-01)"
+        required: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show gh version
+        run: gh --version
+      - name: Call GitHub API with PAT (list default branch)
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT_REPO_SCOPE }}
+          TARGET_REPO: ${{ github.event.inputs.repo }}
+        run: |
+          echo "Testing access to $TARGET_REPO"
+          gh api repos/$TARGET_REPO | jq -r '.default_branch'
+          echo "✅ Token works for API read access."

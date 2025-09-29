@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SDN Lab Template Schema",
+  "type": "object",
+  "required": ["title", "course", "module", "time_estimate", "objectives", "grading", "steps", "autograder"],
+  "properties": {
+    "title": { "type": "string" },
+    "course": { "type": "string" },
+    "module": { "type": "string" },
+    "lab_number": { "type": ["integer", "string"] },
+    "time_estimate": { "type": "string" },
+    "objectives": { "type": "array", "items": { "type": "string" } },
+    "python_version": { "type": "string", "default": "3.11" },
+    "accounts": { "type": "array", "items": { "type": "string" } },
+    "devices": { "type": "array", "items": { "type": "string" } },
+    "deliverables": {
+      "type": "object",
+      "properties": {
+        "readme_summary": { "type": "string" },
+        "instructions_summary": { "type": "string" }
+      },
+      "required": ["readme_summary", "instructions_summary"]
+    },
+    "grading": {
+      "type": "object",
+      "properties": {
+        "total_points": { "type": "integer" },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "step": { "type": "string" },
+              "requirement": { "type": "string" },
+              "points": { "type": "integer" }
+            },
+            "required": ["step", "requirement", "points"]
+          }
+        }
+      },
+      "required": ["total_points", "rows"]
+    },
+    "tips": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "symptom": { "type": "string" },
+          "fix": { "type": "string" }
+        },
+        "required": ["title", "symptom", "fix"]
+      }
+    },
+    "autograder": {
+      "type": "object",
+      "properties": {
+        "log_path": { "type": "string" },
+        "required_markers": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["log_path", "required_markers"]
+    },
+    "license": { "type": "string" },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "goal": { "type": "string" },
+          "actions": { "type": "string" },
+          "done_when": { "type": "string" },
+          "log_marker": { "type": "string" }
+        },
+        "required": ["title", "goal", "actions", "done_when", "log_marker"]
+      }
+    }
+  }
+}

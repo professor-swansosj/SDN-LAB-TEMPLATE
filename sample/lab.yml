@@ -1,0 +1,58 @@
+title: Lab 5 — Advanced Netmiko & Parsing
+course: Software Defined Networking
+module: Network Automation Fundamentals
+lab_number: 5
+time_estimate: 90–120 min
+
+objectives:
+  - Use Netmiko with proper error handling
+  - Parse CLI with ntc-templates
+  - Produce a short report and pass autograder checks
+
+python_version: "3.11"
+accounts: ["GitHub", "Cisco DevNet"]
+devices: ["Cisco DevNet Always-On Catalyst"]
+
+deliverables:
+  readme_summary: "Completed README and INSTRUCTIONS with logs"
+  instructions_summary: "All steps executed with required log markers"
+
+grading:
+  total_points: 75
+  rows:
+    - { step: "Step 2", requirement: "Dev Container Started", points: 5 }
+    - { step: "Step 3", requirement: "Target device confirmed", points: 5 }
+    - { step: "Step 5", requirement: "Show command output saved", points: 10 }
+    - { step: "Step 6", requirement: "Error handling implemented", points: 10 }
+    - { step: "Step 8", requirement: "Parsed output table created", points: 20 }
+    - { step: "Step 9", requirement: "Report generated", points: 15 }
+    - { step: "Step 10", requirement: "Commit, push, verify", points: 10 }
+
+tips:
+  - title: Dev container dependencies
+    symptom: "ModuleNotFoundError for netmiko or ntc_templates"
+    fix: "Reopen in container and run `pip install -r requirements.txt`"
+  - title: Wrong hostname/IP
+    symptom: "Connection timeout"
+    fix: "Use the sandbox raw IP or verify DNS from inside the container"
+
+autograder:
+  log_path: logs/lab.log
+  required_markers:
+    - "[STEP 2] Dev Container Started"
+    - "[STEP 5] Show Command Saved"
+
+license: "© 2025 Your Name — Classroom use."
+
+steps:
+  - title: Clone the repository
+    goal: Local copy ready in VS Code
+    actions: "Clone your assigned lab repo and open it in VS Code."
+    done_when: "Repo is open, devcontainer prompts appear."
+    log_marker: "STEP 1 CLONED"
+
+  - title: Open the Dev Container
+    goal: Ensure consistent tooling
+    actions: "Reopen in container and wait for install to complete."
+    done_when: "`pip list` shows required packages."
+    log_marker: "STEP 2 Dev Container Started"

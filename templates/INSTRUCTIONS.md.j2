@@ -1,0 +1,20 @@
+# Instructions — {{ title }}
+
+Follow these steps in order.
+
+> **Logging Requirement:** Write progress to `{{ autograder.log_path }}` as you complete each step.
+
+{% for step in steps %}
+## Step {{ loop.index }} — {{ step.title }}
+**Goal:** {{ step.goal }}
+
+**What to do:**  
+{{ step.actions }}
+
+**You’re done when:**  
+{{ step.done_when }}
+
+**Log marker to add:**  
+`[{{ step.log_marker }}]`
+
+{% endfor %}

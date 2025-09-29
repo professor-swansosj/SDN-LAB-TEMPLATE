@@ -1,0 +1,9 @@
+name: Lint Docs
+on: [pull_request, push]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm i -g markdownlint-cli2
+      - run: markdownlint-cli2 '**/*.md'

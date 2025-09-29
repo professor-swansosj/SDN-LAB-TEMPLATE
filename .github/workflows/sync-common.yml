@@ -1,0 +1,66 @@
+name: Sync Lab Standards
+on:
+  workflow_dispatch:
+    inputs:
+      repos:
+        description: "Comma-separated list like org/Lab1,org/Lab2"
+        required: true
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout standards repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python deps
+        run: pip install jinja2 pyyaml
+
+      - name: Setup Node (for markdownlint-cli2)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install markdownlint-cli2
+        run: npm i -g markdownlint-cli2
+
+      - name: Check gh CLI
+        run: gh --version
+
+      - name: Sync loop
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT_REPO_SCOPE }}
+          REPOS: ${{ github.event.inputs.repos }}
+        run: |
+          IFS=',' read -ra LIST <<< "$REPOS"
+          for R in "${LIST[@]}"; do
+            echo "::group::Sync -> $R"
+            rm -rf target
+            gh repo clone "$R" target -- --depth=1 -q
+            cp -r style/. target/
+            if [ -f target/lab.yml ]; then
+              python3 scripts/render.py target/lab.yml target
+            else
+              echo "No lab.yml in $R — skipping render"
+              echo "::endgroup::"
+              continue
+            fi
+            (cd target && npx markdownlint-cli2 '**/*.md' || true)
+            (
+              cd target
+              git checkout -b chore/sync-standards || true
+              git add README.md INSTRUCTIONS.md .markdownlint.json .prettierrc.yml || true
+              if git diff --cached --quiet; then
+                echo "No changes to commit"
+              else
+                git -c user.name='standards-bot' -c user.email='bot@example.com' commit -m 'chore: sync lab standards'
+                git push --set-upstream origin chore/sync-standards -f
+                gh pr create --title "chore: sync lab standards" --body "Automated update from SDN-LAB-TEMPLATE" --base main || true
+              fi
+            )
+            echo "::endgroup::"
+          done
