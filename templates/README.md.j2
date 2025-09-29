@@ -14,6 +14,29 @@
 - Accounts: {{ accounts|join(", ") }}
 - Devices/Sandboxes: {{ devices|join(", ") }}
 
+{% if overview is defined %}
+## Overview
+{{ overview }}
+{% endif %}
+
+{% if resources is defined and resources|length %}
+## Resources
+{% for r in resources -%}
+- [{{ r.title }}]({{ r.url }}){% if 'note' in r %} — {{ r.note }}{% endif %}
+{% endfor %}
+{% endif %}
+
+
+{% if faq is defined and faq|length %}
+## FAQ
+{% for item in faq -%}
+**Q:** {{ item.q }}  
+**A:** {{ item.a }}
+
+{% endfor %}
+{% endif %}
+
+
 ## Deliverables
 - {{ deliverables.readme_summary }}
 - {{ deliverables.instructions_summary }}
@@ -27,6 +50,7 @@
 {% endfor %}
 | **Total** |  | **{{ grading.total_points }}** |
 
+{% if tips is defined and tips|length %}
 ## 🔧 Troubleshooting & Pro Tips
 {% for tip in tips -%}
 **{{ tip.title }}**  
@@ -34,6 +58,8 @@
 *Fix:* {{ tip.fix }}
 
 {% endfor %}
+{% endif %}
+
 
 ## Autograder Notes
 - Log file: `{{ autograder.log_path }}`

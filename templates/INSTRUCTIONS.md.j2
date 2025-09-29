@@ -1,5 +1,9 @@
 # Instructions — {{ title }}
 
+{% if before_you_begin %}
+> **Before you begin:** {{ before_you_begin }}
+{% endif %}
+
 Follow these steps in order.
 
 > **Logging Requirement:** Write progress to `{{ autograder.log_path }}` as you complete each step.
@@ -18,3 +22,11 @@ Follow these steps in order.
 `[{{ step.log_marker }}]`
 
 {% endfor %}
+
+{% if submission_checklist and submission_checklist|length %}
+## Submission Checklist
+{% for c in submission_checklist -%}
+- [ ] {{ c }}
+{% endfor %}
+{% endif %}
+
