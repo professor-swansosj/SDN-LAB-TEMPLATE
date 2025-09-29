@@ -36,12 +36,16 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_PAT_REPO_SCOPE }}
           REPOS: ${{ github.event.inputs.repos }}
         run: |
+          set -e
           IFS=',' read -ra LIST <<< "$REPOS"
           for R in "${LIST[@]}"; do
             echo "::group::Sync -> $R"
             rm -rf target
             gh repo clone "$R" target -- --depth=1 -q
-            cp -r style/. target/
+
+            # copy style files (including dotfiles)
+            rsync -a style/ target/
+
             if [ -f target/lab.yml ]; then
               python3 scripts/render.py target/lab.yml target
             else
@@ -49,18 +53,31 @@ jobs:
               echo "::endgroup::"
               continue
             fi
+
+            # run linter but don't fail the job on lint errors
             (cd target && npx markdownlint-cli2 '**/*.md' || true)
-            (
-              cd target
-              git checkout -b chore/sync-standards || true
-              git add README.md INSTRUCTIONS.md .markdownlint.json .prettierrc.yml || true
-              if git diff --cached --quiet; then
-                echo "No changes to commit"
-              else
-                git -c user.name='standards-bot' -c user.email='bot@example.com' commit -m 'chore: sync lab standards'
-                git push --set-upstream origin chore/sync-standards -f
-                gh pr create --title "chore: sync lab standards" --body "Automated update from SDN-LAB-TEMPLATE" --base main || true
-              fi
-            )
+
+            BASE_BRANCH=$(gh api repos/$R --jq .default_branch)
+
+            cd target
+            git checkout -b chore/sync-standards || true
+
+            # only add files that exist
+            git add README.md INSTRUCTIONS.md || true
+            [ -f .markdownlint.json ] && git add .markdownlint.json
+            [ -f .prettierrc.yml ] && git add .prettierrc.yml
+
+            if git diff --cached --quiet; then
+              echo "No changes to commit for $R"
+            else
+              git -c user.name='standards-bot' -c user.email='bot@example.com' commit -m 'chore: sync lab standards'
+              git push --set-upstream origin chore/sync-standards -f
+              gh pr create --title "chore: sync lab standards" \
+                           --body "Automated update from SDN-LAB-TEMPLATE" \
+                           --base "$BASE_BRANCH"
+            fi
+
+            cd ..
             echo "::endgroup::"
           done
+
