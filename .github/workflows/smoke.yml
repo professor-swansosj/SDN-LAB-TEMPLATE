@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       repo:
-        description: "One repo you plan to sync (e.g., yourorg/SDN-Lab-01)"
+        description: "One lab repo to test (e.g., yourorg/SDN-Lab-01)"
         required: true
 
 jobs:
@@ -12,11 +12,12 @@ jobs:
     steps:
       - name: Show gh version
         run: gh --version
-      - name: Call GitHub API with PAT (list default branch)
+      - name: Call GitHub API with PAT (read-only)
         env:
           GH_TOKEN: ${{ secrets.GH_PAT_REPO_SCOPE }}
           TARGET_REPO: ${{ github.event.inputs.repo }}
         run: |
           echo "Testing access to $TARGET_REPO"
-          gh api repos/$TARGET_REPO | jq -r '.default_branch'
-          echo "✅ Token works for API read access."
+          DEFAULT_BRANCH=$(gh api repos/$TARGET_REPO --jq .default_branch)
+          echo "Default branch: $DEFAULT_BRANCH"
+          echo "✅ Token works for API read access (no changes made)."
