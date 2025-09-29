@@ -68,16 +68,18 @@ jobs:
             [ -f .prettierrc.yml ] && git add .prettierrc.yml
 
             if git diff --cached --quiet; then
-              echo "No changes to commit for $R"
+            echo "No changes to commit for $R"
             else
-              git -c user.name='standards-bot' -c user.email='bot@example.com' commit -m 'chore: sync lab standards'
-              git push --set-upstream origin chore/sync-standards -f
-              gh pr create --title "chore: sync lab standards" \
-                           --body "Automated update from SDN-LAB-TEMPLATE" \
-                           --base "$BASE_BRANCH"
+            git -c user.name='standards-bot' -c user.email='bot@example.com' commit -m 'chore: sync lab standards'
+
+            # 🔐 Use the PAT for pushes (sets an HTTPS remote with the token)
+            git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${R}.git"
+
+            git push --set-upstream origin chore/sync-standards -f
+
+            gh pr create --title "chore: sync lab standards" \
+                        --body "Automated update from SDN-LAB-TEMPLATE" \
+                        --base "$BASE_BRANCH"
             fi
 
-            cd ..
-            echo "::endgroup::"
-          done
 
