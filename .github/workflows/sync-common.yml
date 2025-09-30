@@ -49,6 +49,7 @@ jobs:
             # also copy the drift guard workflow into the lab
             mkdir -p target/.github/workflows
             cp -f .github/workflows/verify-docs.yml target/.github/workflows/ || true
+            cp -f .github/CODEOWNERS target/.github/ || true
 
 
             if [ -f target/lab.yml ]; then
@@ -73,6 +74,7 @@ jobs:
             [ -f .markdownlintignore ] && git add .markdownlintignore || true
             [ -f .prettierrc.yml ] && git add .prettierrc.yml || true
             [ -f .github/workflows/verify-docs.yml ] && git add .github/workflows/verify-docs.yml || true
+            [ -f .github/CODEOWNERS ] && git add .github/CODEOWNERS || true
 
 
             if git diff --cached --quiet; then
