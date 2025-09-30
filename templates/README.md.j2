@@ -28,8 +28,8 @@
 
 {% if readme_topic is defined %}
 {% for topic in readme_topic -%}
-## {{ readme_topic.title }}
-{{ readme_topic.content }}
+### {{ topic.title }}
+{{ topic.content }}
 
 {% endfor %}
 {% endif %}
