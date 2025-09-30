@@ -27,9 +27,15 @@
 {% endif %}
 
 {% if readme_topic is defined %}
+## Lab Topics
 {% for topic in readme_topic -%}
 ### {{ topic.title }}
 {{ topic.content }}
+
+{% if topic.code_block is defined and topic.code_block|length %}
+```{{ topic.code_block.language }}
+{{ topic.code_block.code }}
+```
 
 {% endfor %}
 {% endif %}
