@@ -69,15 +69,24 @@ jobs:
 
             if git diff --cached --quiet; then
                 echo "No changes to commit for $R"
-            else
+                else
                 git -c user.name='standards-bot' -c user.email='bot@example.com' commit -m 'chore: sync lab standards'
-                # use PAT for pushes
+
+                # Clean any stray uncommitted files (e.g., from npx) so gh won't complain
+                git reset --hard HEAD
+
+                # Use the PAT for pushes
                 git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${R}.git"
+
                 git push --set-upstream origin chore/sync-standards -f
-                gh pr create --title "chore: sync lab standards" \
-                            --body "Automated update from SDN-LAB-TEMPLATE" \
-                            --base "$BASE_BRANCH"
-            fi
+
+                # Be explicit about the head branch to avoid "push first" warnings
+                gh pr create \
+                    --head chore/sync-standards \
+                    --base "$BASE_BRANCH" \
+                    --title "chore: sync lab standards" \
+                    --body "Automated update from SDN-LAB-TEMPLATE"
+                fi
             popd >/dev/null
             echo "::endgroup::"
             done
