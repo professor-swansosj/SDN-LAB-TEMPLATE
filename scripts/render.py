@@ -1,6 +1,7 @@
 import sys, yaml, pathlib
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 import os, fnmatch
+from pathlib import Path
 
 root = pathlib.Path(__file__).resolve().parents[1]
 templates_dir = root / "templates"
@@ -53,13 +54,19 @@ def build_tree(root=".", ignore_patterns=None, max_depth=3):
 def render(lab_yml_path: pathlib.Path, out_dir: pathlib.Path):
     data = yaml.safe_load(lab_yml_path.read_text(encoding="utf-8"))
     repo_tree_cfg = (data or {}).get("repo_tree", {})
-    
     if repo_tree_cfg.get("enabled"):
-        root = repo_tree_cfg.get("root", ".")
+        lab_root = Path(lab_yml_path).parent.resolve()        # ← always the lab repo root
+        root_cfg = repo_tree_cfg.get("root", ".")
+        root_path = Path(root_cfg)
+        # If root is relative, resolve it under the lab root
+        root_dir = (lab_root / root_path).resolve() if not root_path.is_absolute() else root_path
+
         ignore = repo_tree_cfg.get("ignore", [])
         max_depth = int(repo_tree_cfg.get("max_depth", 3))
-        # Important: render.py runs from the lab repo’s root in CI, so cwd = repo root
-        data["file_tree"] = build_tree(root=root, ignore_patterns=ignore, max_depth=max_depth)
+
+        data["file_tree"] = build_tree(root=str(root_dir),
+                                    ignore_patterns=ignore,
+                                    max_depth=max_depth)
     else:
         data["file_tree"] = None
 
