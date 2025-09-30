@@ -4,28 +4,6 @@
 **Module:** {{ module }} • **Lab #:** {{ lab_number }}  
 **Estimated Time:** {{ time_estimate }}
 
-## Objectives
-{% for o in objectives -%}
-- {{ o }}
-{% endfor %}
-
-## Prerequisites
-- Python {{ python_version }} (via the provided dev container)
-- Accounts: {{ accounts|join(", ") }}
-- Devices/Sandboxes: {{ devices|join(", ") }}
-
-{% if overview is defined %}
-## Overview
-{{ overview }}
-{% endif %}
-
-{% if resources is defined and resources|length %}
-## Resources
-{% for r in resources -%}
-- [{{ r.title }}]({{ r.url }}){% if 'note' in r %} — {{ r.note }}{% endif %}
-{% endfor %}
-{% endif %}
-
 {% if readme_topic is defined %}
 ## Lab Topics
 
@@ -42,31 +20,6 @@
 {% endfor %}
 {% endif %}
 
-
-
-{% if faq is defined and faq|length %}
-## FAQ
-{% for item in faq -%}
-**Q:** {{ item.q }}  
-**A:** {{ item.a }}
-
-{% endfor %}
-{% endif %}
-
-
-## Deliverables
-- {{ deliverables.readme_summary }}
-- {{ deliverables.instructions_summary }}
-- Grading: **{{ grading.total_points }} points**
-
-## Grading Breakdown
-| Step | Requirement | Points |
-|---|---|---|
-{% for row in grading.rows -%}
-| {{ row.step }} | {{ row.requirement }} | {{ row.points }} |
-{% endfor %}
-| **Total** |  | **{{ grading.total_points }}** |
-
 {% if tips is defined and tips|length %}
 ## 🔧 Troubleshooting & Pro Tips
 {% for tip in tips -%}
@@ -77,14 +30,6 @@
 {% endfor %}
 {% endif %}
 
-
-## Autograder Notes
-- Log file: `{{ autograder.log_path }}`
-- Required markers: `{{ autograder.required_markers|join("`, `") }}`
-
 ## License
 {{ license }}
 
-# HAPPY CODING!
-
-**Sincerely, Professor Swanson**

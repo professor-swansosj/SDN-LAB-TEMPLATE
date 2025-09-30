@@ -1,8 +1,35 @@
 # Instructions — {{ title }}
 
+## Objectives
+{% for o in objectives -%}
+- {{ o }}
+{% endfor %}
+
+## Prerequisites
+- Python {{ python_version }} (via the provided dev container)
+- Accounts: {{ accounts|join(", ") }}
+- Devices/Sandboxes: {{ devices|join(", ") }}
+
+{% if overview is defined %}
+## Overview
+{{ overview }}
+{% endif %}
+
 {% if before_you_begin %}
 > **Before you begin:** {{ before_you_begin }}
 {% endif %}
+
+{% if resources is defined and resources|length %}
+## Resources
+{% for r in resources -%}
+- [{{ r.title }}]({{ r.url }}){% if 'note' in r %} — {{ r.note }}{% endif %}
+{% endfor %}
+{% endif %}
+
+## Deliverables
+- {{ deliverables.readme_summary }}
+- {{ deliverables.instructions_summary }}
+- Grading: **{{ grading.total_points }} points**
 
 Follow these steps in order.
 
@@ -22,6 +49,27 @@ Follow these steps in order.
 `[{{ step.log_marker }}]`
 
 {% endfor %}
+
+{% if faq is defined and faq|length %}
+## FAQ
+{% for item in faq -%}
+**Q:** {{ item.q }}  
+**A:** {{ item.a }}
+
+{% endfor %}
+{% endif %}
+
+## Grading Breakdown
+| Step | Requirement | Points |
+|---|---|---|
+{% for row in grading.rows -%}
+| {{ row.step }} | {{ row.requirement }} | {{ row.points }} |
+{% endfor %}
+| **Total** |  | **{{ grading.total_points }}** |
+
+## Autograder Notes
+- Log file: `{{ autograder.log_path }}`
+- Required markers: `{{ autograder.required_markers|join("`, `") }}`
 
 {% if submission_checklist and submission_checklist|length %}
 ## Submission Checklist
