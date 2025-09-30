@@ -1,0 +1,104 @@
+name: Audit Labs Drift
+
+on:
+  # run manually, or on a schedule (weekly Monday 13:17 UTC)
+  workflow_dispatch:
+    inputs:
+      repo_filter:
+        description: "Comma-separated list of repos (owner/name). Blank = auto-discover Lab-* under OWNER."
+        required: false
+  schedule:
+    - cron: "17 13 * * 1"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    env:
+      # Bot token you already use for sync; needs repo + workflow scopes
+      GH_TOKEN: ${{ secrets.GH_PAT_REPO_SCOPE }}
+      # Change if your labs live under a different owner/user
+      OWNER: professor-swansosj
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Resolve repo list
+        id: repos
+        run: |
+          set -euo pipefail
+          if [ -n "${{ github.event.inputs.repo_filter || '' }}" ]; then
+            IFS=',' read -ra R <<< "${{ github.event.inputs.repo_filter }}"
+            printf '%s\n' "${R[@]// /}" > repos.txt
+          else
+            # auto-discover all public+private repos named Lab-*
+            gh repo list "$OWNER" --limit 200 --json name,isPrivate \
+              --jq '.[] | select(.name | startswith("Lab-")) | "\($OWNER)/\(.name)"' > repos.txt
+          fi
+          echo "count=$(wc -l < repos.txt)" >> $GITHUB_OUTPUT
+
+      - name: Audit labs
+        id: audit
+        run: |
+          set -euo pipefail
+          pass=true
+          echo "### SDN Labs Audit" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Repo | lab.yml | verify workflow | workflow has push+pr | job id 'verify' | template pinned | CODEOWNERS | markdownlint | ruleset requires 'verify' |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|---|---|---|---|---|---|---|" >> $GITHUB_STEP_SUMMARY
+
+          while read -r REPO; do
+            [ -z "$REPO" ] && continue
+            echo "::group::Audit $REPO"
+
+            # 1) lab.yml exists
+            if gh api "repos/$REPO/contents/lab.yml" >/dev/null 2>&1; then L1="✅"; else L1="❌"; pass=false; fi
+
+            # 2) verify-docs workflow exists
+            WF_PATH=".github/workflows/verify-docs.yml"
+            if gh api "repos/$REPO/contents/$WF_PATH" >/dev/null 2>&1; then W1="✅"; else W1="❌"; pass=false; fi
+            WF="$(gh api "repos/$REPO/contents/$WF_PATH" --jq .content 2>/dev/null | base64 -d || true)"
+
+            # 3) workflow triggers include pull_request AND push
+            if echo "$WF" | grep -qE '(^|[[:space:]])pull_request:' && echo "$WF" | grep -qE '(^|[[:space:]])push:'; then W2="✅"; else W2="❌"; pass=false; fi
+
+            # 4) job id is exactly 'verify'
+            if echo "$WF" | grep -qE '^jobs:\s*$' && echo "$WF" | grep -qE '^[[:space:]]*verify:[[:space:]]*$'; then W3="✅"; else W3="❌"; pass=false; fi
+
+            # 5) template checkout pinned to v1.0 (warning if not)
+            if echo "$WF" | grep -q 'professor-swansosj/SDN-LAB-TEMPLATE' && echo "$WF" | grep -q 'ref:\s*v1\.0'; then W4="✅"; else W4="⚠️"; fi
+
+            # 6) CODEOWNERS includes you
+            if gh api "repos/$REPO/contents/.github/CODEOWNERS" >/dev/null 2>&1 &&
+               gh api "repos/$REPO/contents/.github/CODEOWNERS" --jq .content | base64 -d | grep -q '@professor-swansosj'; then C1="✅"; else C1="❌"; fi
+
+            # 7) markdownlint config present
+            if gh api "repos/$REPO/contents/.markdownlint.json" >/dev/null 2>&1; then M1="✅"; else M1="❌"; fi
+
+            # 8) ruleset requires 'verify' on main (new Rulesets; fallback old protection)
+            R1="❌"
+            RS="$(gh api "repos/$REPO/rulesets?target=branch" 2>/dev/null || true)"
+            if echo "$RS" | jq -e '
+                .[] | select(.enforcement=="active") |
+                select((.conditions.ref_name.include // []) | any(. == "main" or . == "~DEFAULT_BRANCH")) |
+                (.rules.required_status_checks.required_checks // []) | any(.context=="verify")
+              ' >/dev/null 2>&1; then
+              R1="✅"
+            else
+              BP="$(gh api "repos/$REPO/branches/main/protection" 2>/dev/null || true)"
+              if echo "$BP" | jq -e '.required_status_checks.checks | any(.context=="verify")' >/dev/null 2>&1; then R1="✅"; fi
+            fi
+
+            echo "| $REPO | $L1 | $W1 | $W2 | $W3 | $W4 | $C1 | $M1 | $R1 |" >> $GITHUB_STEP_SUMMARY
+            echo "::endgroup::"
+          done < repos.txt
+
+          echo "overall=$pass" >> $GITHUB_OUTPUT
+
+      - name: Fail if drift found
+        if: steps.audit.outputs.overall == 'false'
+        run: |
+          echo "Drift detected — see the table in the job summary for details." >&2
+          exit 1
+
