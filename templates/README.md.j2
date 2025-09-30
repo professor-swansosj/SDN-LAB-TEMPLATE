@@ -28,6 +28,7 @@
 
 {% if readme_topic is defined %}
 ## Lab Topics
+
 {% for topic in readme_topic -%}
 ### {{ topic.title }}
 {{ topic.content }}
