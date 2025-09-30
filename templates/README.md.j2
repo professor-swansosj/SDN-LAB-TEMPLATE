@@ -26,6 +26,15 @@
 {% endfor %}
 {% endif %}
 
+{% if readme_topic is defined %}
+{% for topic in readme_topic -%}
+## {{ readme_topic.title }}
+{{ readme_topic.content }}
+
+{% endfor %}
+{% endif %}
+
+
 
 {% if faq is defined and faq|length %}
 ## FAQ
