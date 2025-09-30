@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "SDN Lab Template Schema",
   "type": "object",
   "required": ["title", "course", "module", "time_estimate", "objectives", "grading", "steps", "autograder"],
@@ -20,6 +20,7 @@
         "instructions_summary": { "type": "string" }
       },
       "required": ["readme_summary", "instructions_summary"]
+    
     },
     "grading": {
       "type": "object",
@@ -74,6 +75,32 @@
         },
         "required": ["title", "goal", "actions", "done_when", "log_marker"]
       }
+    },
+    "overview": { "type": "string" },
+    "resources": {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+        "title": { "type": "string" },
+        "url": { "type": "string" },
+        "note": { "type": "string" }
+        },
+        "required": ["title", "url"]
     }
+    },
+    "faq": {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+        "q": { "type": "string" },
+        "a": { "type": "string" }
+        },
+        "required": ["q", "a"]
+    }
+    },
+    "before_you_begin": { "type": "string" },
+    "submission_checklist": { "type": "array", "items": { "type": "string" } }
   }
 }
