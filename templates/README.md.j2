@@ -4,6 +4,15 @@
 **Module:** {{ module }} • **Lab #:** {{ lab_number }}  
 **Estimated Time:** {{ time_estimate }}
 
+{% if file_tree %}
+## Repository structure
+
+```text
+{{ file_tree }}
+```
+
+{% endif %}
+
 {% if readme_topic is defined %}
 ## Lab Topics
 
