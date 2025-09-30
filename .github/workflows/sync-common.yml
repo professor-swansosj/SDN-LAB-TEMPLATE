@@ -46,6 +46,11 @@ jobs:
             # copy style files (including dotfiles)
             rsync -a style/ target/
 
+            # also copy the drift guard workflow into the lab
+            mkdir -p target/.github/workflows
+            cp -f .github/workflows/verify-docs.yml target/.github/workflows/ || true
+
+
             if [ -f target/lab.yml ]; then
                 python3 scripts/render.py target/lab.yml target
             else
@@ -65,7 +70,10 @@ jobs:
             # only add files that exist
             git add README.md INSTRUCTIONS.md || true
             [ -f .markdownlint.json ] && git add .markdownlint.json || true
+            [ -f .markdownlintignore ] && git add .markdownlintignore || true
             [ -f .prettierrc.yml ] && git add .prettierrc.yml || true
+            [ -f .github/workflows/verify-docs.yml ] && git add .github/workflows/verify-docs.yml || true
+
 
             if git diff --cached --quiet; then
                 echo "No changes to commit for $R"
