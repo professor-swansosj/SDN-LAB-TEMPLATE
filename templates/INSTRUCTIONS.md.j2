@@ -59,6 +59,16 @@ Follow these steps in order.
 {% endfor %}
 {% endif %}
 
+{% if tips is defined and tips|length %}
+## 🔧 Troubleshooting & Pro Tips
+{% for tip in tips -%}
+**{{ tip.title }}**  
+*Symptom:* {{ tip.symptom }}  
+*Fix:* {{ tip.fix }}
+
+{% endfor %}
+{% endif %}
+
 ## Grading Breakdown
 | Step | Requirement | Points |
 |---|---|---|
