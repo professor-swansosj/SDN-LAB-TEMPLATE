@@ -76,18 +76,21 @@ def render(lab_yml_path: pathlib.Path, out_dir: pathlib.Path):
     data = yaml.safe_load(lab_yml_path.read_text(encoding="utf-8"))
     repo_tree_cfg = (data or {}).get("repo_tree", {})
     if repo_tree_cfg.get("enabled"):
-        lab_root = Path(lab_yml_path).parent.resolve()        # ← always the lab repo root
+        lab_root = Path(lab_yml_path).parent.resolve()
         root_cfg = repo_tree_cfg.get("root", ".")
         root_path = Path(root_cfg)
-        # If root is relative, resolve it under the lab root
         root_dir = (lab_root / root_path).resolve() if not root_path.is_absolute() else root_path
 
         ignore = repo_tree_cfg.get("ignore", [])
         max_depth = int(repo_tree_cfg.get("max_depth", 3))
 
-        data["file_tree"] = build_tree(root=str(root_dir),
-                                    ignore_patterns=ignore,
-                                    max_depth=max_depth)
+        repo_label = infer_repo_label(lab_root)  # ← robust label
+        data["file_tree"] = build_tree(
+            root=str(root_dir),
+            ignore_patterns=ignore,
+            max_depth=max_depth,
+            root_label=repo_label
+        )
     else:
         data["file_tree"] = None
 
