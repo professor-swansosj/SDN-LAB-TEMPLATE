@@ -40,11 +40,8 @@
 {{ practice.code_block.code }}
 ```
 
-{% endif %}
-
-{% if practice.code_notes is defined and practice.code_notes|length %}
-**Notes:**
-{% practice.code_notes %}
+**NOTES:**
+{{ practice.code_notes }}
 {% endif %}
 
 {% endfor %}
