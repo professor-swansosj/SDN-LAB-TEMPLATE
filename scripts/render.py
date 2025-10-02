@@ -1,6 +1,6 @@
 import sys, yaml, pathlib
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
-import os, fnmatch
+import os, fnmatch, re, subprocess
 from pathlib import Path
 
 root = pathlib.Path(__file__).resolve().parents[1]
@@ -12,7 +12,7 @@ env = Environment(
     lstrip_blocks=True,
 )
 
-def build_tree(root=".", ignore_patterns=None, max_depth=3):
+def build_tree(root=".", ignore_patterns=None, max_depth=3, root_label=None):
     ignore_patterns = ignore_patterns or []
     root = os.path.abspath(root)
 
@@ -24,7 +24,9 @@ def build_tree(root=".", ignore_patterns=None, max_depth=3):
                 return True
         return False
 
-    lines = [os.path.basename(root) or "."]
+    label = root_label or (os.path.basename(root) or ".")
+    lines = [label]
+
     def walk(dirpath, prefix="", depth=0):
         if depth >= max_depth:
             return
@@ -32,7 +34,6 @@ def build_tree(root=".", ignore_patterns=None, max_depth=3):
             entries = sorted(os.listdir(dirpath))
         except Exception:
             return
-        # filter ignores
         filt = []
         for name in entries:
             p = os.path.join(dirpath, name)
@@ -49,6 +50,26 @@ def build_tree(root=".", ignore_patterns=None, max_depth=3):
                 walk(p, prefix + extension, depth + 1)
     walk(root)
     return "\n".join(lines)
+
+def infer_repo_label(lab_root: Path) -> str:
+    # 1) honor explicit env, if present
+    env = os.environ.get("REPO_LABEL")
+    if env:
+        return env
+    # 2) try to parse from git remote url
+    try:
+        url = subprocess.check_output(
+            ["git", "-C", str(lab_root), "remote", "get-url", "origin"],
+            text=True
+        ).strip()
+        # works for https and ssh remotes
+        m = re.search(r'[:/](?P<name>[^/]+?)(?:\.git)?$', url)
+        if m:
+            return m.group("name")
+    except Exception:
+        pass
+    # 3) fallback to directory name
+    return lab_root.name
 
 
 def render(lab_yml_path: pathlib.Path, out_dir: pathlib.Path):
