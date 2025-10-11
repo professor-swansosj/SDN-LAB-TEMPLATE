@@ -9,6 +9,11 @@
 - Python {{ python_version }} (via the provided dev container)
 - Accounts: {{ accounts|join(", ") }}
 - Devices/Sandboxes: {{ devices|join(", ") }}
+{% if prereq is defined and prereq|length %}
+- Technical: {% for p in prereq -%}
+  - {{ p }}
+  {% endfor %}
+{% endif %}
 
 {% if overview is defined %}
 ## Overview
@@ -27,6 +32,11 @@
 {% endif %}
 
 ## Deliverables
+{% if deliverables is defined and deliverables|length %}
+{% for d in deliverables -%}
+- {{ d }}
+{% endfor %}
+{% endif %}
 - {{ deliverables.readme_summary }}
 - {{ deliverables.instructions_summary }}
 - Grading: **{{ grading.total_points }} points**
